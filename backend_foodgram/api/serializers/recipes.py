@@ -6,10 +6,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from backend_foodgram.recipes.models import (
-    FavoriteRecipe, Recipe, RecipeIngredient, ShoppingCart)
-from tags.models import Tag
-from ingredients.models import Ingredient
+from recipes.models import (
+    Favorite, Recipe, RecipeIngredient, ShoppingCart, Tag, Ingredient
+)
 
 
 class Base64ImageField(serializers.ImageField):
@@ -87,8 +86,8 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
         many=True,
         source='recipe_ingredient'
     )
-    is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
 
     class Meta:
@@ -102,7 +101,7 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
             'is_in_shopping_cart',
             'name',
             'image',
-            'description',
+            'text',
             'cook_time'
         )
 
@@ -114,7 +113,7 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         return (request and request.user.is_authenticated
-                and FavoriteRecipe.objects.filter(
+                and Favorite.objects.filter(
                     user=request.user, recipe=obj
                 ).exists())
 
@@ -150,7 +149,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = (
             'ingredients',
             'name',
-            'description',
+            'text',
             'tags',
             'cook_time',
             'image'
@@ -197,7 +196,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор добавления/удаления рецепта в избранное."""
     class Meta:
-        model = FavoriteRecipe
+        model = Favorite
         fields = ('user', 'recipe')
 
     def validate(self, data):

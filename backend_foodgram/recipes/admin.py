@@ -4,9 +4,27 @@ from django.conf import settings
 from recipes.models import (
     Recipe,
     RecipeIngredient,
-    FavoriteRecipe,
-    ShoppingCart
+    Favorite,
+    ShoppingCart,
+    Ingredient,
+    Tag
 )
+
+
+@register(Ingredient)
+class IngredientAdmin(ModelAdmin):
+    list_display = ('pk', 'name', 'measurement_unit')
+    search_fields = ('name',)
+    list_filter = ('name',)
+    empty_value_display = settings.EMPTY_VALUE
+
+
+@register(Tag)
+class TagAdmin(ModelAdmin):
+    list_display = ('pk', 'name', 'color', 'slug')
+    search_fields = ('name', 'color', 'slug')
+    list_filter = ('name', 'color', 'slug')
+    empty_value_display = settings.EMPTY_VALUE
 
 
 class RecipeIngredientInline(TabularInline):
@@ -28,7 +46,7 @@ class RecipeAdmin(ModelAdmin):
     ]
 
     def favorites_amount(self, obj):
-        return obj.favorite_recipe.count()
+        return obj.favorites.count()
 
 
 @register(RecipeIngredient)
@@ -37,8 +55,8 @@ class RecipeIngredientAdmin(ModelAdmin):
     empty_value_display = settings.EMPTY_VALUE
 
 
-@register(FavoriteRecipe)
-class FavoriteRecipeAdmin(ModelAdmin):
+@register(Favorite)
+class FavoriteAdmin(ModelAdmin):
     list_display = ('pk', 'user', 'recipe')
     search_fields = ('user', 'recipe')
     empty_value_display = settings.EMPTY_VALUE

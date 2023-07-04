@@ -18,10 +18,8 @@ from api.serializers.recipes import (
     FullRecipeInfoSerializer
 )
 from recipes.models import (
-    Recipe, RecipeIngredient, FavoriteRecipe, ShoppingCart
+    Recipe, RecipeIngredient, Favorite, ShoppingCart, Tag, Ingredient
 )
-from tags.models import Tag
-from ingredients.models import Ingredient
 from api.filters import IngredientFilter, RecipeFilter
 
 
@@ -70,7 +68,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
      Добавление/удаление рецепта в избранное и список покупок"""
     queryset = Recipe.objects.all()
     permission_classes = (IsAdminAuthorOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     pagination_class = CustomPageNumberPagination
     http_method_names = [
@@ -106,7 +104,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             error_message = 'Такого рецепта нет в избранном.'
             return delete_model(
                 request,
-                FavoriteRecipe,
+                Favorite,
                 recipe,
                 error_message
             )

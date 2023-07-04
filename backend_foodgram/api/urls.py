@@ -8,9 +8,9 @@ from api.views.users import (
 from api.views.recipes import RecipeViewSet, IngredientViewSet, TagViewSet
 
 router = DefaultRouter()
-router.register(r'recipes', RecipeViewSet)
-router.register(r'ingredients', IngredientViewSet)
-router.register(r'tags', TagViewSet)
+router.register(r'recipes', RecipeViewSet, basename='recipes')
+router.register(r'ingredients', IngredientViewSet, basename='ingredients')
+router.register(r'tags', TagViewSet, basename='tags')
 urlpatterns = [
     path('users/subscriptions/',
          UserSubscriptionsViewSet.as_view({'get': 'list'})),
