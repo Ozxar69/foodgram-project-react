@@ -1,15 +1,12 @@
 import os
 
 from dotenv import load_dotenv
+from pathlib import Path
 
 load_dotenv()
 
 
-def get_list_allowed(allowed: str) -> list:
-    return [host.strip() for host in allowed.split(',') if host.strip()]
-
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 SECRET_KEY = os.getenv('SECRET_KEY', default='your_secret_key')
@@ -17,9 +14,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='your_secret_key')
 
 DEBUG = os.getenv('DEBUG', default=True)
 
-ALLOWED_HOSTS = get_list_allowed(
-    os.getenv('ALLOWED_HOSTS', default='localhost')
-)
+ALLOWED_HOSTS = ['51.250.96.66', '127.0.0.1', 'localhost', 'backend']
 
 
 INSTALLED_APPS = [
@@ -70,6 +65,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': str(BASE_DIR / 'db.sqlite3'),
+#     }
+# }
 
 DATABASES = {
     'default': {
@@ -115,8 +116,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-
-
 LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
@@ -135,17 +134,20 @@ MEDIA_URL = '/back_media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'back_media/')
 
 DJOSER = {
+    'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
-    "LOGIN_FIELD": "email",
+    'SERIALIZERS': {
+        'user_create': 'api.serializers.users.UsersCreateSerializer',
+        'user': 'api.serializers.users.UserGetSerializer',
+        'current_user': 'api.serializers.users.UserGetSerializer',
+    },
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly']
-    },
-    "SERIALIZERS": {
-        "user_create": "api.serializers.users.UsersCreateSerializer",
-        "user": "api.serializers.users.UsersSerializer",
-        "current_user": "api.serializers.users.UsersSerializer",
-    },
+        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
+    }
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+EMPTY_VALUE = '--пусто--'

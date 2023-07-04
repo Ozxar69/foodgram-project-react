@@ -6,20 +6,20 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=255,
         unique=True,
-        verbose_name= 'Название тега',
-        help_text= 'Название тега',
+        verbose_name='Название тега',
+        help_text='Название тега',
     )
     color = models.CharField(
-        max_length=7,
+        max_length=10,
         unique=True,
-        verbose_name= 'Цвет тега',
-        help_text= 'Цвет тега',
+        verbose_name='Цвет тега',
+        help_text='Цвет тега',
     )
     slug = models.SlugField(
         max_length=50,
         unique=True,
-        verbose_name= 'Номер тега',
-        help_text= 'Номер тега',
+        verbose_name='Номер тега',
+        help_text='Номер тега',
     )
 
     class Meta:
@@ -27,4 +27,4 @@ class Tag(models.Model):
         verbose_name_plural = 'Теги'
 
     def __str__(self):
-        return self.name
+        return f'{self.name}'

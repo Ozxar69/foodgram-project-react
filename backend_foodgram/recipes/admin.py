@@ -1,46 +1,51 @@
-from django.contrib.admin import ModelAdmin, register
+from django.contrib.admin import ModelAdmin, register, TabularInline
+from django.conf import settings
 
 from recipes.models import (
     Recipe,
     RecipeIngredient,
     FavoriteRecipe,
-    ShoppingList
+    ShoppingCart
 )
+
+
+class RecipeIngredientInline(TabularInline):
+    model = RecipeIngredient
 
 
 @register(Recipe)
 class RecipeAdmin(ModelAdmin):
-    list_display = ('name', 'author', 'display_tags', 'favorite', 'pub_date')
-    list_filter = ('name', 'author', 'tags')
-    search_filter = ('name',)
-    readonly_fields = ('favorite',)
-    fields = (
-        'image',
-        ('name', 'author'),
-        'description',
-        ('tags', 'cook_time'),
-        'favorite',
+    list_display = (
+        'pk',
+        'name',
+        'author',
+        'favorites_amount'
     )
+    list_filter = ('name', 'author', 'tags')
+    empty_value_display = settings.EMPTY_VALUE
+    inlines = [
+        RecipeIngredientInline,
+    ]
 
-    def display_tags(self, obj):
-        return ', '.join([tag.name for tag in obj.tags.all()])
-    display_tags.short_description = 'Теги'
-
-    def favorite(self, obj):
-        return obj.favorite_recipe.count
-    favorite.short_description = 'Добавлен в избранное'
+    def favorites_amount(self, obj):
+        return obj.favorite_recipe.count()
 
 
 @register(RecipeIngredient)
-class RecipeIngredientsAdmin(ModelAdmin):
-    list_display = ('recipe', 'ingredient', 'count')
+class RecipeIngredientAdmin(ModelAdmin):
+    list_display = ('pk', 'recipe', 'ingredient', 'amount')
+    empty_value_display = settings.EMPTY_VALUE
 
 
 @register(FavoriteRecipe)
 class FavoriteRecipeAdmin(ModelAdmin):
-    list_display = ('recipe', 'user')
+    list_display = ('pk', 'user', 'recipe')
+    search_fields = ('user', 'recipe')
+    empty_value_display = settings.EMPTY_VALUE
 
 
-@register(ShoppingList)
-class ShoppingListAdmin(ModelAdmin):
-    list_display = ('recipe', 'user')
+@register(ShoppingCart)
+class ShoppingCartAdmin(ModelAdmin):
+    list_display = ('pk', 'user', 'recipe')
+    search_fields = ('user', 'recipe')
+    empty_value_display = settings.EMPTY_VALUE

@@ -13,15 +13,10 @@ class Ingredient(models.Model):
         verbose_name='Единица измерения',
         help_text='Единица измерения',
     )
-    count = models.IntegerField(
-        max_length=255,
-        verbose_name='Количество',
-        help_text='Количество',
-    )
 
     class Meta:
         verbose_name = 'Ингридиенты'
-        verbose_name_plural = 'Ингридиенты'
+        verbose_name_plural = 'Ингридиентов'
 
     def __str__(self):
         return f'{self.name}, {self.measurement_unit}'
