@@ -99,6 +99,18 @@ http://localhost/
 
 ``` pip install -r requirements.txt ```
 
+В файле settings.py раскоментируйте следущую часть кода:
+
+```
+DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
+         'NAME': str(BASE_DIR / 'db.sqlite3'),
+     }
+ }
+```
+Не забудте закоментировать database свящанную с postgresql.
+
 Перейти в дирректрию с файлом manage.py:
 
  ``` cd backend_foodgram```
