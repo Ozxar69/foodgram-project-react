@@ -22,7 +22,7 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-def add_ingredients(recipe, ingredients):
+def add_ingredients(ingredients, recipe):
     """Функция получения ингредиента."""
     ingredient_list = []
     for ingredient in ingredients:
@@ -43,14 +43,14 @@ class TagSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с тегами."""
     class Meta:
         model = Tag
-        fields = ('name', 'color', 'slug')
+        fields = ('id', 'name', 'color', 'slug')
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингредиентами."""
     class Meta:
         model = Ingredient
-        fields = ('name', 'measurement_unit')
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -102,7 +102,7 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'text',
-            'cook_time'
+            'cooking_time'
         )
 
     def get_author(self, obj):
@@ -129,7 +129,7 @@ class ShortRecipeInfoSerializer(serializers.ModelSerializer):
     """Сериализатор для отображения краткой информации."""
     class Meta:
         model = Recipe
-        fields = ('id', 'name', 'image', 'cook_time')
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -151,24 +151,27 @@ class RecipeSerializer(serializers.ModelSerializer):
             'name',
             'text',
             'tags',
-            'cook_time',
+            'cooking_time',
             'image'
         )
 
     def validate(self, data):
-        list_ingr = [item['ingredient'] for item in data['ingredients']]
-        all_ingredients, distinct_ingredients = (
-            len(list_ingr), len(set(list_ingr)))
-
-        if all_ingredients != distinct_ingredients:
-            raise ValidationError(
-                {'error': 'Ингредиенты должны быть уникальными'}
+        ingredients_list = []
+        for ingredient in data.get('recipe_ingredient'):
+            if ingredient.get('amount') <= 0:
+                raise serializers.ValidationError(
+                    'Количество не может быть меньше 1'
+                )
+            ingredients_list.append(ingredient.get('id'))
+        if len(set(ingredients_list)) != len(ingredients_list):
+            raise serializers.ValidationError(
+                'Такой ингредиент уже есть.'
             )
         return data
 
     @transaction.atomic
     def create(self, validated_data):
-        user = self.context.get('request')
+        user = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('recipe_ingredient')
         recipe = Recipe.objects.create(author=user, **validated_data)
