@@ -109,7 +109,7 @@ DATABASES = {
      }
  }
 ```
-Не забудте закоментировать database свящанную с postgresql.
+Не забудте закоментировать database связанную с postgresql.
 
 Перейти в дирректрию с файлом manage.py:
 
