@@ -6,37 +6,39 @@
 
 ### Как запустить проект на боевом сервере:
 
-Установить на сервере docker и docker-compose. Скопировать на сервер файлы docker-compose.yaml и default.conf:
+Установить на сервере docker и docker-compose. Скопировать на сервер файлы docker-compose.yaml и nginx.conf и .env:
 
 ```
 scp docker-compose.yml <логин_на_сервере>@<IP_сервера>:/home/<логин_на_сервере>/docker-compose.yml
 scp nginx.conf <логин_на_сервере>@<IP_сервера>:/home/<логин_на_сервере>/nginx.conf
+scp .env <логин_на_сервере>@<IP_сервера>:/home/<логин_на_сервере>/.env
+```
+Находясь в директории выполните запуск контейнеров.
+
+```
+sudo docker compose -f docker-compose.yml up -d
 
 ```
 После выполните следующие команды:
 
 ```
-sudo docker-compose exec backend python manage.py migrate
+sudo docker compose exec backend python manage.py makemigrations
+sudo docker compose exec backend python manage.py migrate
 
 ```
 
-
-```
-sudo docker-compose exec backend python manage.py collectstatic --no-input 
-```
 
 Затем необходимо будет создать суперюзера и загрузить в базу данных информацию об ингредиентах:
 
 ```
-sudo docker-compose exec backend python manage.py createsuperuser
+sudo docker compose exec backend python manage.py createsuperuser
 
 ```
+```
+sudo docker compose exec backend python manage.py collectstatic --no-input 
+sudo docker compose exec backend python manage.py loaddata dump.json
 
 ```
-sudo docker-compose exec backend python manage.py load_data_csv --path <путь_к_файлу> --model_name <имя_модели> --app_name <название_приложения>
-
-```
-
 ### Как запустить проект локально в контейнерах:
 
 Клонировать репозиторий и перейти в него в командной строке:
