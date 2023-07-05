@@ -34,6 +34,9 @@ sudo docker-compose exec backend python manage.py createsuperuser
 
 ```
 sudo docker-compose exec backend python manage.py load_data_csv --path <путь_к_файлу> --model_name <имя_модели> --app_name <название_приложения>
+
+```
+
 ### Как запустить проект локально в контейнерах:
 
 Клонировать репозиторий и перейти в него в командной строке:
