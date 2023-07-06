@@ -101,7 +101,7 @@ http://localhost/
 
 ``` pip install -r requirements.txt ```
 
-В файле settings.py раскоментируйте следущую часть кода:
+В файле settings.py замените database связанную с postgresql на:
 
 ```
 DATABASES = {
@@ -111,7 +111,6 @@ DATABASES = {
      }
  }
 ```
-Не забудте закоментировать database связанную с postgresql.
 
 Перейти в дирректрию с файлом manage.py:
 
