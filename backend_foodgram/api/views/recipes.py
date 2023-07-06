@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 
-from api.permissions import IsAdminAuthorOrReadOnly
+from api.permissions import IsAuthorOrReadOnly
 from api.paginations import CustomPageNumberPagination
 from api.serializers.recipes import (
     FavoriteSerializer,
@@ -67,7 +67,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
      Обработка запросов создания/получения/редактирования/удаления рецептов
      Добавление/удаление рецепта в избранное и список покупок"""
     queryset = Recipe.objects.all()
-    permission_classes = (IsAdminAuthorOrReadOnly,)
+    permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
     pagination_class = CustomPageNumberPagination

@@ -14,13 +14,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default='your_secret_key')
 
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    '51.250.96.66',
-    '127.0.0.1',
-    'localhost',
-    'backend',
-    'foodhub.myftp.org'
-]
+# ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
