@@ -1,12 +1,13 @@
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import (
+    UserSerializer as DjoserUserSerialiser, UserSerializer
+)
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from users.models import Follow, User
-from api.serializers.recipes import ShortRecipeInfoSerializer
 
 
-class UsersCreateSerializer(UserCreateSerializer):
+class UsersCreateSerializer(DjoserUserSerialiser):
     """Сериализатор для обработки запросов на создание пользователя."""
     class Meta:
         model = User
@@ -43,54 +44,6 @@ class UserGetSerializer(UserSerializer):
                 ).exists())
 
 
-class UserSubscribeRepresentSerializer(UserGetSerializer):
-    """"Сериализатор для предоставления информации
-    о подписках пользователя.
-    """
-    is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-        read_only_fields = (
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-
-    def get_recipes(self, obj):
-        request = self.context.get('request')
-        recipes_limit = None
-        if request:
-            recipes_limit = request.query_params.get('recipes_limit')
-        recipes = obj.recipes.all()
-        if recipes_limit:
-            recipes = obj.recipes.all()[:int(recipes_limit)]
-        return ShortRecipeInfoSerializer(
-            recipes,
-            many=True,
-            context={'request': request}
-        ).data
-
-    def get_recipes_count(self, obj):
-        return obj.recipes.count()
-
-
 class UserSubscribeSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с подписками пользователей."""
     class Meta:
@@ -113,6 +66,7 @@ class UserSubscribeSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
+        from api.serializers.recipes import UserSubscribeRepresentSerializer
         request = self.context.get('request')
         return UserSubscribeRepresentSerializer(
             instance.author, context={'request': request}

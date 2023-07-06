@@ -63,9 +63,11 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для работы с рецептами.
-     Обработка запросов создания/получения/редактирования/удаления рецептов
-     Добавление/удаление рецепта в избранное и список покупок"""
+    """
+    Вьюсет для работы с рецептами.
+    Обработка запросов создания/получения/редактирования/удаления рецептов
+    Добавление/удаление рецепта в избранное и список покупок.
+    """
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = [DjangoFilterBackend]

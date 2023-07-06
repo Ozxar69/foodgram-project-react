@@ -3,9 +3,8 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers.users import (
-    UserSubscribeRepresentSerializer,
-    UserSubscribeSerializer)
+from api.serializers.users import UserSubscribeSerializer
+from api.serializers.recipes import UserSubscribeRepresentSerializer
 from users.models import Follow, User
 
 
