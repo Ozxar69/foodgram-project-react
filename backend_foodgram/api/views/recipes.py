@@ -1,4 +1,6 @@
-from django.http import HttpResponse
+import io
+
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -163,7 +165,15 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
             unit = ingredient['ingredient__measurement_unit']
             amount = ingredient['ingredient_amount']
             shopping_cart.append(f'\n{name} - {amount}, {unit}')
-        response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = \
-            'attachment; filename="shopping_cart.txt"'
+
+        response = self.create_shopping_cart_file(shopping_cart)
+        return response
+
+    def create_shopping_cart_file(self, shopping_cart):
+        """Создание файла со списком покупок."""
+        file_content = '\n'.join(shopping_cart)
+        file_name = 'shopping_cart.txt'
+        file = io.BytesIO(file_content.encode())
+        response = FileResponse(file, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
         return response
