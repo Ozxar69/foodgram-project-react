@@ -2,7 +2,6 @@ import base64
 
 from django.core.files.base import ContentFile
 from django.db import transaction
-from django.db.models import Exists, OuterRef
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -138,24 +137,6 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         )
-
-    def get_queryset(self):
-        request = self.context.get('request')
-        queryset = super().get_queryset().annotate(
-            is_favorited=Exists(
-                Favorite.objects.filter(
-                    user=request.user,
-                    recipe_id=OuterRef('id')
-                )
-            ),
-            is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(
-                    user=request.user,
-                    recipe_id=OuterRef('id')
-                )
-            )
-        )
-        return queryset
 
 
 class ShortRecipeInfoSerializer(serializers.ModelSerializer):
