@@ -23,25 +23,23 @@ from recipes.models import (
 from api.filters import IngredientFilter, RecipeFilter
 
 
-def create_model(request, instance, serializer_name):
-    """функция для добавления рецепта в избранное или списка покупок."""
-    serializer = serializer_name(
-        data={'user': request.user.id, 'recipe': instance.id, },
-        context={'request': request}
-    )
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+class ModelFunctionality:
+    def create_model(self, request, instance, serializer_name):
+        """Метод для добавления модели."""
+        serializer = serializer_name(
+            data={'user': request.user.id, 'recipe': instance.id},
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-
-def delete_model(request, model_name, instance, error_message):
-    """Функция для удаления рецепта из избранного или из списка покупок."""
-    if not model_name.objects.filter(user=request.user,
-                                     recipe=instance).exists():
-        return Response({'errors': error_message},
-                        status=status.HTTP_400_BAD_REQUEST)
-    model_name.objects.filter(user=request.user, recipe=instance).delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
+    def delete_model(self, request, model_name, instance, error_message):
+        """Метод для удаления модели."""
+        if not model_name.objects.filter(user=request.user, recipe=instance).exists():
+            return Response({'errors': error_message}, status=status.HTTP_400_BAD_REQUEST)
+        model_name.objects.filter(user=request.user, recipe=instance).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -62,7 +60,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
 
 
-class RecipeViewSet(viewsets.ModelViewSet):
+class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
     """
     Вьюсет для работы с рецептами.
     Обработка запросов создания/получения/редактирования/удаления рецептов
@@ -96,7 +94,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """
         recipe = get_object_or_404(Recipe, id=pk)
         if request.method == 'POST':
-            return create_model(
+            return self.create_model(
                 request,
                 recipe,
                 FavoriteSerializer
@@ -104,7 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'DELETE':
             error_message = 'Такого рецепта нет в избранном.'
-            return delete_model(
+            return self.delete_model(
                 request,
                 Favorite,
                 recipe,
@@ -120,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Удаление/добавление в список покупок."""
         recipe = get_object_or_404(Recipe, id=pk)
         if request.method == 'POST':
-            return create_model(
+            return self.create_model(
                 request,
                 recipe,
                 ShoppingCartSerializer
@@ -128,7 +126,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == 'DELETE':
             error_message = 'Такого рецепта нет в списке покупок.'
-            return delete_model(
+            return self.delete_model(
                 request,
                 ShoppingCart,
                 recipe,
