@@ -3,6 +3,7 @@ import io
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
+from django.db.models import Exists, OuterRef
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -79,6 +80,24 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
         'patch',
         'delete'
     ]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = queryset.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=self.request.user,
+                    recipe_id=OuterRef('pk')
+                )
+            ),
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(
+                    user=self.request.user,
+                    recipe_id=OuterRef('pk')
+                )
+            )
+        )
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):

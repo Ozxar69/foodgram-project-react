@@ -2,6 +2,7 @@ import base64
 
 from django.core.files.base import ContentFile
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
@@ -119,8 +120,8 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
         many=True,
         source='recipe_ingredient'
     )
-    is_favorited = serializers.SerializerMethodField()
-    is_in_shopping_cart = serializers.SerializerMethodField()
+    is_favorited = serializers.BooleanField(read_only=True)
+    is_in_shopping_cart = serializers.BooleanField(read_only=True)
     image = Base64ImageField(required=False)
 
     class Meta:
@@ -138,19 +139,23 @@ class FullRecipeInfoSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
-    def get_is_favorited(self, obj):
+    def get_queryset(self):
         request = self.context.get('request')
-        return (request and request.user.is_authenticated
-                and Favorite.objects.filter(
-                    user=request.user, recipe=obj
-                ).exists())
-
-    def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
-        return (request and request.user.is_authenticated
-                and ShoppingCart.objects.filter(
-                    user=request.user, recipe=obj
-                ).exists())
+        queryset = super().get_queryset().annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=request.user,
+                    recipe_id=OuterRef('id')
+                )
+            ),
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(
+                    user=request.user,
+                    recipe_id=OuterRef('id')
+                )
+            )
+        )
+        return queryset
 
 
 class ShortRecipeInfoSerializer(serializers.ModelSerializer):
