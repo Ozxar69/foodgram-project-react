@@ -85,53 +85,63 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=['post'],
         permission_classes=[IsAuthenticated, ]
     )
     def favorite(self, request, pk):
-        """Работа с избранными рецептами.
-        Удаление/добавление в избранное.
+        """
+        Добавление в избранное.
         """
         recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == 'POST':
-            return self.create_model(
-                request,
-                recipe,
-                FavoriteSerializer
-            )
+        return self.create_model(
+            request,
+            recipe,
+            FavoriteSerializer
+        )
 
-        if request.method == 'DELETE':
-            error_message = 'Такого рецепта нет в избранном.'
-            return self.delete_model(
-                request,
-                Favorite,
-                recipe,
-                error_message
-            )
+    @favorite.mapping.delete
+    def delete_favorite(self, request, pk):
+        """
+        Удаление из избранного.
+        """
+        recipe = get_object_or_404(Recipe, id=pk)
+        error_message = 'Такого рецепта нет в избранном.'
+        return self.delete_model(
+            request,
+            Favorite,
+            recipe,
+            error_message
+        )
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
+        methods=['post'],
         permission_classes=[IsAuthenticated, ]
     )
     def shopping_cart(self, request, pk):
-        """Удаление/добавление в список покупок."""
+        """
+        Добавление в список покупок.
+        """
         recipe = get_object_or_404(Recipe, id=pk)
-        if request.method == 'POST':
-            return self.create_model(
-                request,
-                recipe,
-                ShoppingCartSerializer
-            )
+        return self.create_model(
+            request,
+            recipe,
+            ShoppingCartSerializer
+        )
 
-        if request.method == 'DELETE':
-            error_message = 'Такого рецепта нет в списке покупок.'
-            return self.delete_model(
-                request,
-                ShoppingCart,
-                recipe,
-                error_message
-            )
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        """
+        Удаление из списка покупок.
+        """
+        recipe = get_object_or_404(Recipe, id=pk)
+        error_message = 'Такого рецепта нет в списке покупок.'
+        return self.delete_model(
+            request,
+            ShoppingCart,
+            recipe,
+            error_message
+        )
 
     @action(
         detail=False,
