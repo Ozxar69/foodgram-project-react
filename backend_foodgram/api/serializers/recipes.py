@@ -189,10 +189,8 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def add_ingredients(self, ingredients, recipe):
         """Метод добавления ингредиентов."""
-        print(f'ingredients = {ingredients}')
         ingredient_list = []
         for ingredient in ingredients:
-            print(f'ingredient = {ingredient}')
             current_ingredient = ingredient.get('id')
             amount = ingredient.get('amount')
             ingredient_list.append(
