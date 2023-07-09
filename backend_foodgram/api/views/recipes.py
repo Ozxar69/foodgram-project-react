@@ -14,8 +14,7 @@ from api.serializers.recipes import (FavoriteSerializer,
                                      IngredientSerializer, RecipeSerializer,
                                      ShoppingCartSerializer, TagSerializer)
 from api.utils import create_shopping_cart_file
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
-                            ShoppingCart, Tag)
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
 class ModelFunctionality:
