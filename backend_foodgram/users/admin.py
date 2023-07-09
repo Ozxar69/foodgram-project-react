@@ -1,5 +1,5 @@
-from django.contrib.admin import ModelAdmin, register
 from django.conf import settings
+from django.contrib.admin import ModelAdmin, register
 
 from users.models import Follow, User
 

@@ -1,20 +1,20 @@
 import base64
 
+from api.serializers.users import UserGetSerializer
 from django.core.files.base import ContentFile
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 
-from recipes.models import (
-    Favorite, Recipe, RecipeIngredient, ShoppingCart, Tag, Ingredient
-)
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import User
-from api.serializers.users import UserGetSerializer
 
 
 class Base64ImageField(serializers.ImageField):
-    """Кастомное поле для кодирования изображения в base64."""
+    """
+    Кастомное поле для кодирования изображения в base64.
+    """
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -88,7 +88,9 @@ class UserSubscribeRepresentSerializer(UserGetSerializer):
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    """Сериализатор для подробного описания ингредиентов в рецепте."""
+    """
+    Сериализатор для подробного описания ингредиентов в рецепте.
+    """
     name = serializers.CharField(
         source='ingredient.name', read_only=True)
     id = serializers.PrimaryKeyRelatedField(
@@ -103,7 +105,10 @@ class RecipeIngredientSerializer(serializers.ModelSerializer):
 
 class AddIngredientSerializer(serializers.ModelSerializer):
     """Сериализатор для добавления ингредиентов."""
-    id = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+
+    )
 
     class Meta:
         model = RecipeIngredient
@@ -149,8 +154,7 @@ class ShortRecipeInfoSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор создания рецепта."""
     ingredients = AddIngredientSerializer(
-        many=True,
-        source='recipe_ingredient'
+        many=True
     )
     image = Base64ImageField()
     tags = serializers.PrimaryKeyRelatedField(
@@ -171,7 +175,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ingredients_list = []
-        for ingredient in data.get('recipe_ingredient'):
+        for ingredient in data.get('ingredients'):
             if ingredient.get('amount') <= 0:
                 raise serializers.ValidationError(
                     'Количество не может быть меньше 1'
@@ -185,10 +189,11 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def add_ingredients(self, ingredients, recipe):
         """Метод добавления ингредиентов."""
+        print(f'ingredients = {ingredients}')
         ingredient_list = []
         for ingredient in ingredients:
-            current_ingredient = get_object_or_404(Ingredient,
-                                                   id=ingredient.get('id'))
+            print(f'ingredient = {ingredient}')
+            current_ingredient = ingredient.get('id')
             amount = ingredient.get('amount')
             ingredient_list.append(
                 RecipeIngredient(
@@ -203,7 +208,7 @@ class RecipeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context.get('request').user
         tags = validated_data.pop('tags')
-        ingredients = validated_data.pop('recipe_ingredient')
+        ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=user, **validated_data)
         recipe.tags.set(tags)
         self.add_ingredients(ingredients, recipe)
@@ -211,7 +216,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('recipe_ingredient')
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         instance.tags.clear()
         instance.tags.set(tags)
@@ -227,7 +232,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """Сериализатор добавления/удаления рецепта в избранное."""
+    """
+    Сериализатор добавления/удаления рецепта в избранное.
+    """
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
@@ -246,7 +253,9 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    """Сериализатор добавления/удаления рецепта в список покупок."""
+    """
+    Сериализатор добавления/удаления рецепта в список покупок.
+    """
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipe')

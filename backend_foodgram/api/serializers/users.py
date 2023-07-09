@@ -1,6 +1,5 @@
-from djoser.serializers import (
-    UserSerializer as DjoserUserSerialiser, UserSerializer
-)
+from djoser.serializers import UserSerializer
+from djoser.serializers import UserSerializer as DjoserUserSerialiser
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -8,7 +7,9 @@ from users.models import Follow, User
 
 
 class UsersCreateSerializer(DjoserUserSerialiser):
-    """Сериализатор для обработки запросов на создание пользователя."""
+    """
+    Сериализатор для обработки запросов на создание пользователя.
+    """
     class Meta:
         model = User
         fields = (
@@ -22,7 +23,9 @@ class UsersCreateSerializer(DjoserUserSerialiser):
 
 
 class UserGetSerializer(UserSerializer):
-    """Сериализатор для отображения информации о пользователе."""
+    """
+    Сериализатор для отображения информации о пользователе.
+    """
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -45,7 +48,9 @@ class UserGetSerializer(UserSerializer):
 
 
 class UserSubscribeSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с подписками пользователей."""
+    """
+    Сериализатор для работы с подписками пользователей.
+    """
     class Meta:
         model = Follow
         fields = ('user', 'author',)

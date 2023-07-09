@@ -1,10 +1,10 @@
+from api.serializers.recipes import UserSubscribeRepresentSerializer
+from api.serializers.users import UserSubscribeSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.serializers.users import UserSubscribeSerializer
-from api.serializers.recipes import UserSubscribeRepresentSerializer
 from users.models import Follow, User
 
 
@@ -38,7 +38,9 @@ class UserSubscribeView(APIView):
 
 class UserSubscriptionsViewSet(mixins.ListModelMixin,
                                viewsets.GenericViewSet):
-    """Получение списка всех подписок на пользователей."""
+    """
+    Получение списка всех подписок на пользователей.
+    """
     serializer_class = UserSubscribeRepresentSerializer
 
     def get_queryset(self):

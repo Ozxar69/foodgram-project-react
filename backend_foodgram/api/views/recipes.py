@@ -1,29 +1,23 @@
 import io
 
+from api.filters import IngredientFilter, RecipeFilter
+from api.paginations import CustomPageNumberPagination
+from api.permissions import IsAuthorOrReadOnly
+from api.serializers.recipes import (FavoriteSerializer,
+                                     FullRecipeInfoSerializer,
+                                     IngredientSerializer, RecipeSerializer,
+                                     ShoppingCartSerializer, TagSerializer)
+from django.db.models import Exists, OuterRef, Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
-from django.db.models import Exists, OuterRef
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum
-from django_filters.rest_framework import DjangoFilterBackend
 
-from api.permissions import IsAuthorOrReadOnly
-from api.paginations import CustomPageNumberPagination
-from api.serializers.recipes import (
-    FavoriteSerializer,
-    RecipeSerializer,
-    ShoppingCartSerializer,
-    TagSerializer,
-    IngredientSerializer,
-    FullRecipeInfoSerializer
-)
-from recipes.models import (
-    Recipe, RecipeIngredient, Favorite, ShoppingCart, Tag, Ingredient
-)
-from api.filters import IngredientFilter, RecipeFilter
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 
 
 class ModelFunctionality:
@@ -39,14 +33,18 @@ class ModelFunctionality:
 
     def delete_model(self, request, model_name, instance, error_message):
         """Метод для удаления модели."""
-        if not model_name.objects.filter(user=request.user, recipe=instance).exists():
-            return Response({'errors': error_message}, status=status.HTTP_400_BAD_REQUEST)
+        if not model_name.objects.filter(
+                user=request.user, recipe=instance).exists():
+            return Response(
+                {'errors': error_message}, status=status.HTTP_400_BAD_REQUEST)
         model_name.objects.filter(user=request.user, recipe=instance).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """Вьюсет для обработки запросов на получение ингредиентов."""
+    """
+    Вьюсет для обработки запросов на получение ингредиентов.
+    """
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filter_backends = (DjangoFilterBackend,)
@@ -170,7 +168,9 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated, ]
     )
     def download_shopping_cart(self, request):
-        """Скачивание файла со списком покупок."""
+        """
+        Скачивание файла со списком покупок.
+        """
         ingredients = RecipeIngredient.objects.filter(
             recipe__shopping_cart__user=request.user
         ).values(
@@ -189,7 +189,9 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
         return response
 
     def create_shopping_cart_file(self, shopping_cart):
-        """Создание файла со списком покупок."""
+        """
+        Создание файла со списком покупок.
+        """
         file_content = '\n'.join(shopping_cart)
         file_name = 'shopping_cart.txt'
         file = io.BytesIO(file_content.encode())
