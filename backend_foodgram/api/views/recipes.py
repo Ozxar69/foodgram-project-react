@@ -1,4 +1,10 @@
-import io
+from django.db.models import Exists, OuterRef, Prefetch
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
 from api.filters import IngredientFilter, RecipeFilter
 from api.paginations import CustomPageNumberPagination
@@ -7,15 +13,7 @@ from api.serializers.recipes import (FavoriteSerializer,
                                      FullRecipeInfoSerializer,
                                      IngredientSerializer, RecipeSerializer,
                                      ShoppingCartSerializer, TagSerializer)
-from django.db.models import Exists, OuterRef, Sum
-from django.http import FileResponse
-from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
-from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
-
+from api.utils import create_shopping_cart_file
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 
@@ -67,7 +65,7 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
     Обработка запросов создания/получения/редактирования/удаления рецептов
     Добавление/удаление рецепта в избранное и список покупок.
     """
-    queryset = Recipe.objects.all()
+
     permission_classes = (IsAuthorOrReadOnly,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = RecipeFilter
@@ -80,21 +78,26 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.annotate(
-            is_favorited=Exists(
-                Favorite.objects.filter(
-                    user=self.request.user,
-                    recipe_id=OuterRef('pk')
-                )
-            ),
-            is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(
-                    user=self.request.user,
-                    recipe_id=OuterRef('pk')
+        queryset = Recipe.objects.all()
+
+        if self.request.user.is_authenticated:
+            queryset = queryset.select_related('author').prefetch_related(
+                Prefetch('ingredients', queryset=Ingredient.objects.all()),
+                Prefetch('tags', queryset=Tag.objects.all())
+            ).annotate(
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=self.request.user,
+                        recipe_id=OuterRef('pk')
+                    )
+                ),
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        user=self.request.user,
+                        recipe_id=OuterRef('pk')
+                    )
                 )
             )
-        )
         return queryset
 
     def get_serializer_class(self):
@@ -171,30 +174,5 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
         """
         Скачивание файла со списком покупок.
         """
-        ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user
-        ).values(
-            'ingredient__name', 'ingredient__measurement_unit'
-        ).annotate(ingredient_amount=Sum('amount'))
-        shopping_cart = [
-            'Список покупок:\n'
-        ]
-        for ingredient in ingredients:
-            name = ingredient['ingredient__name']
-            unit = ingredient['ingredient__measurement_unit']
-            amount = ingredient['ingredient_amount']
-            shopping_cart.append(f'\n{name} - {amount}, {unit}')
-
-        response = self.create_shopping_cart_file(shopping_cart)
-        return response
-
-    def create_shopping_cart_file(self, shopping_cart):
-        """
-        Создание файла со списком покупок.
-        """
-        file_content = '\n'.join(shopping_cart)
-        file_name = 'shopping_cart.txt'
-        file = io.BytesIO(file_content.encode())
-        response = FileResponse(file, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        response = create_shopping_cart_file(request.user)
         return response

@@ -1,11 +1,11 @@
 import base64
 
-from api.serializers.users import UserGetSerializer
 from django.core.files.base import ContentFile
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from api.serializers.users import UserGetSerializer
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import User
