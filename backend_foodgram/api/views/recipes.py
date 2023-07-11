@@ -1,4 +1,4 @@
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -77,12 +77,10 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        queryset = Recipe.objects.all()
-
         if self.request.user.is_authenticated:
-            queryset = queryset.select_related('author').prefetch_related(
-                Prefetch('ingredients', queryset=Ingredient.objects.all()),
-                Prefetch('tags', queryset=Tag.objects.all())
+            queryset = Recipe.objects.select_related(
+                'author').prefetch_related(
+                'ingredients', 'tags'
             ).annotate(
                 is_favorited=Exists(
                     Favorite.objects.filter(
@@ -97,6 +95,8 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
                     )
                 )
             )
+        else:
+            queryset = Recipe.objects.all()
         return queryset
 
     def get_serializer_class(self):

@@ -1,5 +1,5 @@
 from djoser.serializers import UserSerializer
-from djoser.serializers import UserSerializer as DjoserUserSerialiser
+from djoser.serializers import UserCreateSerializer as DjoserUserSerialiser
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
