@@ -183,7 +183,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients_list.append(ingredient.get('id'))
         if len(set(ingredients_list)) != len(ingredients_list):
             raise serializers.ValidationError(
-                'Такой ингредиент уже есть.'
+                'Ингредиенты должны быть уникальными.'
             )
         return data
 

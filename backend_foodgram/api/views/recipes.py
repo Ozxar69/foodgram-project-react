@@ -77,11 +77,11 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
+        qs = Recipe.objects.select_related('author').prefetch_related(
+            'ingredients', 'tags'
+        )
         if self.request.user.is_authenticated:
-            queryset = Recipe.objects.select_related(
-                'author').prefetch_related(
-                'ingredients', 'tags'
-            ).annotate(
+            qs = qs.annotate(
                 is_favorited=Exists(
                     Favorite.objects.filter(
                         user=self.request.user,
@@ -95,9 +95,8 @@ class RecipeViewSet(ModelFunctionality, viewsets.ModelViewSet):
                     )
                 )
             )
-        else:
-            queryset = Recipe.objects.all()
-        return queryset
+
+        return qs
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
